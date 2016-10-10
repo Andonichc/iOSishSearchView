@@ -2,15 +2,23 @@ package com.appnd.iosishsearchview;
 
 import android.annotation.TargetApi;
 import android.content.Context;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.AttributeSet;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-public class SearchView extends RelativeLayout implements View.OnClickListener{
+import java.util.ArrayList;
+import java.util.List;
+
+public class SearchView extends RelativeLayout implements View.OnClickListener,
+        TextWatcher, TextView.OnEditorActionListener {
 
     private Context mContext;
 
@@ -19,6 +27,9 @@ public class SearchView extends RelativeLayout implements View.OnClickListener{
     private TextView mCancelSearch;
     private EditText mSearchText;
     private View mSearchContainer;
+
+    private List<OnQueryTextListener> queryListeners;
+    private OnSearchOpenedListener openedListener;
 
     public SearchView(Context context) {
         super(context);
@@ -50,6 +61,54 @@ public class SearchView extends RelativeLayout implements View.OnClickListener{
         }
     }
 
+    @Override
+    public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+    }
+
+    @Override
+    public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+    }
+
+    @Override
+    public void afterTextChanged(Editable s) {
+        for (OnQueryTextListener listener : queryListeners) {
+            listener.onQueryTextChanged(s.toString());
+        }
+    }
+
+    @Override
+    public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+        if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+            for (OnQueryTextListener listener : queryListeners) {
+                listener.onQueryTextSubmitted(mSearchText.getText().toString());
+            }
+            return true;
+        }
+        return false;
+    }
+
+    public void addOnQueryTextListener(OnQueryTextListener listener) {
+        queryListeners.add(listener);
+    }
+
+    public void removeOnQueryTextListener(OnQueryTextListener listener) {
+        queryListeners.remove(listener);
+    }
+
+    public void setOpenedListener (OnSearchOpenedListener listener) {
+        openedListener = listener;
+    }
+
+    public void show() {
+        UiHelper.slideIn(mSearchContainer);
+    }
+
+    public void hide() {
+        UiHelper.slideToTop(mSearchContainer);
+    }
+
     private void initSearchView(Context context) {
         mContext = context;
         View view = LayoutInflater.from(context).inflate(R.layout.search_view, this, false);
@@ -61,10 +120,15 @@ public class SearchView extends RelativeLayout implements View.OnClickListener{
         mCancelSearch = (TextView) view.findViewById(R.id.cancel_search);
         mSearchText = (EditText) view.findViewById(R.id.text_search);
 
+        mSearchText.addTextChangedListener(this);
+        mSearchText.setOnEditorActionListener(this);
+
         mSearch.setOnClickListener(this);
         mCancelSearch.setOnClickListener(this);
 
         addView(view);
+
+        queryListeners = new ArrayList<>();
     }
 
     private void hideSearch() {
@@ -85,6 +149,7 @@ public class SearchView extends RelativeLayout implements View.OnClickListener{
                             public void run() {
                                 mCancelSearch.setVisibility(View.GONE);
                                 mSearch.setClickable(true);
+                                openedListener.closed();
                             }
                         }).start();
 
@@ -115,7 +180,19 @@ public class SearchView extends RelativeLayout implements View.OnClickListener{
                 mSearch.requestFocus();
                 //UiHelper.showKeyboard(getActivity());
                 mCancelSearch.setClickable(true);
+                openedListener.opened();
             }
         }).start();
+    }
+
+    public interface OnQueryTextListener {
+        void onQueryTextChanged(String query);
+
+        void onQueryTextSubmitted(String query);
+    }
+
+    public interface OnSearchOpenedListener {
+        void opened();
+        void closed();
     }
 }
