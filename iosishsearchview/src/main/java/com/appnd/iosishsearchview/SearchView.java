@@ -6,7 +6,6 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.AttributeSet;
 import android.view.KeyEvent;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
@@ -20,6 +19,9 @@ import java.util.List;
 public class SearchView extends RelativeLayout implements View.OnClickListener,
         TextWatcher, TextView.OnEditorActionListener {
 
+    public static final int CANCEL_MARGIN_LEFT = 2;
+    public static final int CANCEL_MARGIN_RIGHT = 4;
+    public static final int MARGIN_SEARCHBOX = 4;
     private Context mContext;
 
     private RelativeLayout mSearch;
@@ -97,7 +99,7 @@ public class SearchView extends RelativeLayout implements View.OnClickListener,
         queryListeners.remove(listener);
     }
 
-    public void setOpenedListener (OnSearchOpenedListener listener) {
+    public void setOpenedListener(OnSearchOpenedListener listener) {
         openedListener = listener;
     }
 
@@ -111,22 +113,20 @@ public class SearchView extends RelativeLayout implements View.OnClickListener,
 
     private void initSearchView(Context context) {
         mContext = context;
-        View view = LayoutInflater.from(context).inflate(R.layout.search_view, this, false);
+        inflate(getContext(), R.layout.search_view, this);
 
         //get references to searchView views
-        mSearchContainer = view.findViewById(R.id.search_container);
-        mSearch = (RelativeLayout) view.findViewById(R.id.search_rectangle);
-        mSearchIcon = (ImageView) view.findViewById(R.id.search_icon);
-        mCancelSearch = (TextView) view.findViewById(R.id.cancel_search);
-        mSearchText = (EditText) view.findViewById(R.id.text_search);
+        mSearchContainer = findViewById(R.id.search_container);
+        mSearch = (RelativeLayout) findViewById(R.id.search_rectangle);
+        mSearchIcon = (ImageView) findViewById(R.id.search_icon);
+        mCancelSearch = (TextView) findViewById(R.id.cancel_search);
+        mSearchText = (EditText) findViewById(R.id.text_search);
 
         mSearchText.addTextChangedListener(this);
         mSearchText.setOnEditorActionListener(this);
 
         mSearch.setOnClickListener(this);
         mCancelSearch.setOnClickListener(this);
-
-        addView(view);
 
         queryListeners = new ArrayList<>();
     }
@@ -149,7 +149,9 @@ public class SearchView extends RelativeLayout implements View.OnClickListener,
                             public void run() {
                                 mCancelSearch.setVisibility(View.GONE);
                                 mSearch.setClickable(true);
-                                openedListener.closed();
+                                if (openedListener != null) {
+                                    openedListener.closed();
+                                }
                             }
                         }).start();
 
@@ -160,29 +162,42 @@ public class SearchView extends RelativeLayout implements View.OnClickListener,
     }
 
     private void showSearch() {
+        //disable click to prevent errors while animating
         mSearch.setClickable(false);
-        mSearchIcon.animate()
-                .translationX(0 - mSearch.getWidth() / 2 +
-                        mSearchIcon.getWidth() / 2 + UiHelper.DpToPixels(8 + 4 + 78 / 2, mContext))
-                .setDuration(400)
-                .withStartAction(new Runnable() {
+        //the animation starts when the cancel textview is drawn (so we add a listener on layout changes)
+        mCancelSearch.addOnLayoutChangeListener(new OnLayoutChangeListener() {
+            @Override
+            public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
+                //first we translate the searchIcon to its new position (which is on the left side of the searchbox)
+                mSearchIcon.animate()
+                        .translationX(- mSearch.getWidth() / 2 +
+                                mSearchIcon.getWidth() / 2 + mCancelSearch.getWidth() / 2 +
+                                UiHelper.DpToPixels(MARGIN_SEARCHBOX * 2 + CANCEL_MARGIN_RIGHT + CANCEL_MARGIN_LEFT, mContext))
+                        .setDuration(400)
+                        .withStartAction(new Runnable() {
+                            @Override
+                            public void run() {
+                                mCancelSearch.animate().alpha(1).setDuration(400).start();
+                            }
+                        }).withEndAction(new Runnable() {
                     @Override
                     public void run() {
-                        mCancelSearch.setVisibility(View.VISIBLE);
-                        mCancelSearch.animate().alpha(1).setDuration(400).start();
+                        mSearchText.animate().alpha(1).setDuration(300).start();
+                        mSearchText.setVisibility(View.VISIBLE);
+                        mSearchText.setClickable(true);
+                        mSearch.requestFocus();
+                        //UiHelper.showKeyboard(getActivity());
+                        mCancelSearch.setClickable(true);
+                        if (openedListener != null) {
+                            openedListener.opened();
+                        }
                     }
-                }).withEndAction(new Runnable() {
-            @Override
-            public void run() {
-                mSearchText.animate().alpha(1).setDuration(300).start();
-                mSearchText.setVisibility(View.VISIBLE);
-                mSearchText.setClickable(true);
-                mSearch.requestFocus();
-                //UiHelper.showKeyboard(getActivity());
-                mCancelSearch.setClickable(true);
-                openedListener.opened();
+                }).start();
             }
-        }).start();
+        });
+
+        mCancelSearch.setVisibility(View.VISIBLE);
+
     }
 
     public interface OnQueryTextListener {
@@ -193,6 +208,7 @@ public class SearchView extends RelativeLayout implements View.OnClickListener,
 
     public interface OnSearchOpenedListener {
         void opened();
+
         void closed();
     }
 }
