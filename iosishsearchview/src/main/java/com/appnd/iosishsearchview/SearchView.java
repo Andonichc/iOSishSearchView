@@ -193,8 +193,11 @@ public class SearchView extends RelativeLayout implements View.OnClickListener,
                         }
                     }
                 }).start();
+
+                mCancelSearch.removeOnLayoutChangeListener(this);
             }
         });
+
 
         mCancelSearch.setVisibility(View.VISIBLE);
 
