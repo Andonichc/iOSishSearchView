@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <declare-styleable name="SearchView">
-        <attr name="background_color" format="integer" />
+        <attr name="android:background"/>
+        <attr name="search_icon" format="reference"/>
         <attr name="labelPosition" format="enum">
             <enum name="left" value="0"/>
             <enum name="right" value="1"/>

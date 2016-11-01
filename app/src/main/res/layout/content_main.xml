@@ -9,6 +9,11 @@
     tools:context="com.appnd.iosishsearchviewsample.MainActivity"
     tools:showIn="@layout/activity_main">
 
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/recycler_list"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+
     <com.appnd.iosishsearchview.SearchView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"/>
