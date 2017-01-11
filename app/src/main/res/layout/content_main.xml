@@ -16,6 +16,7 @@
 
     <com.appnd.iosishsearchview.SearchView
         android:layout_width="match_parent"
+        app:search_icon="@android:drawable/star_big_off"
         android:layout_height="wrap_content"/>
 
 </RelativeLayout>

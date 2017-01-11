@@ -3,6 +3,7 @@ package com.appnd.iosishsearchview;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -112,7 +113,7 @@ public class SearchView extends RelativeLayout implements View.OnClickListener,
 
         queryListeners = new ArrayList<>();
 
-        //applyAttrs(context, attrs);
+        applyAttrs(context, attrs);
     }
 
     private void applyAttrs(Context context, AttributeSet attrs) {
@@ -128,7 +129,10 @@ public class SearchView extends RelativeLayout implements View.OnClickListener,
         if (searchIcon != null)
             mSearchIcon.setImageDrawable(searchIcon);
 
-
+        String font = attributeArray.getString(R.styleable.SearchView_font);
+        if (font != null && !"".equals(font)){
+            setTypeface(font);
+        }
 
         attributeArray.recycle();
     }
@@ -225,6 +229,16 @@ public class SearchView extends RelativeLayout implements View.OnClickListener,
 
         mCancelSearch.setVisibility(View.VISIBLE);
 
+    }
+
+    private void setTypeface(String fontString){
+
+        Typeface typeface = Typeface.createFromAsset(getContext().getAssets(), fontString);
+
+        if (typeface != null) {
+            mSearchText.setTypeface(typeface);
+            mCancelSearch.setTypeface(typeface);
+        }
     }
 
     public interface OnQueryTextListener {
