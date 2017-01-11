@@ -12,6 +12,7 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -27,7 +28,7 @@ public class SearchView extends RelativeLayout implements View.OnClickListener,
     public static final int MARGIN_SEARCHBOX = 4;
     private Context mContext;
 
-    private RelativeLayout mSearchContainer;
+    private FrameLayout mSearchContainer;
     private ImageView mSearchIcon;
     private TextView mCancelSearch;
     private EditText mSearchText;
@@ -100,7 +101,7 @@ public class SearchView extends RelativeLayout implements View.OnClickListener,
 
         //get references to searchView views
         mViewContainer = findViewById(R.id.search_container);
-        mSearchContainer = (RelativeLayout) findViewById(R.id.search_rectangle);
+        mSearchContainer = (FrameLayout) findViewById(R.id.search_rectangle);
         mSearchIcon = (ImageView) findViewById(R.id.search_icon);
         mCancelSearch = (TextView) findViewById(R.id.cancel_search);
         mSearchText = (EditText) findViewById(R.id.text_search);
@@ -160,7 +161,6 @@ public class SearchView extends RelativeLayout implements View.OnClickListener,
 
 
     private void hideSearch() {
-        //UiHelper.hideKeyBoard(mContext);
         mCancelSearch.setClickable(false);
         mSearchText.setClickable(false);
         mSearchText.animate()
@@ -214,7 +214,7 @@ public class SearchView extends RelativeLayout implements View.OnClickListener,
                         mSearchText.setVisibility(View.VISIBLE);
                         mSearchText.setClickable(true);
                         mSearchContainer.requestFocus();
-                        //UiHelper.showKeyboard(getActivity());
+
                         mCancelSearch.setClickable(true);
                         if (openedListener != null) {
                             openedListener.opened();
